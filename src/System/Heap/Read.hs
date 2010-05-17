@@ -33,6 +33,7 @@ read (Ptr off) =
      liftIO $
        do hSeek h AbsoluteSeek (fromIntegral off)
           x :: Word64     <- decode <$> hGet h 8
-          b :: ByteString <- decode <$> hGet h (fromIntegral x)
+          b :: ByteString <- decode <$> hGet h (8 + fromIntegral x)
+          print (">", x,b)
           return (decode b)
 

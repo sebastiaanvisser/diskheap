@@ -23,12 +23,13 @@ import qualified Control.Monad.State as State
 data Map =
   Map
   { _size   :: Size
+  , _used   :: IntMap [Offset]
   , _unused :: IntMap [Offset]
   } deriving Show
 
 instance Binary Map where
-  put (Map s u) = put s >> put u
-  get = Map <$> get <*> get
+  put (Map s u v) = put s *> put u *> put v
+  get = Map <$> get <*> get <*> get
 
 $(mkLabels [''Map])
 
@@ -44,11 +45,10 @@ newtype Heap a = Heap { unHeap :: State.StateT Map Read.Heap a }
     )
 
 emptyAllocationMap :: Map
-emptyAllocationMap = Map fileHeaderSize Im.empty
+emptyAllocationMap = Map 0 Im.empty Im.empty
 
 run :: Heap a -> Read.Heap a
-run c = State.evalStateT (unHeap d) emptyAllocationMap
-  where d = dumpMap 0 >> allocate pointerSize >> dumpMap 1 >> allocate pointerSize >> dumpMap 2 >> c
+run (Heap c) = State.evalStateT c emptyAllocationMap
 
 read :: Read.Heap a -> Heap a
 read = Heap . lift
@@ -59,9 +59,11 @@ dumpMap a = State.get >>= liftIO . print . (,) a
 allocate :: Size -> Heap (Offset, Size)
 allocate s =
   do b <- findFreeBlock s
-     case b of
-       Nothing     -> flip (,) s <$> getM size <* modM size (+(8+s))
+     (o, t) <- case b of
+       Nothing     -> flip (,) s <$> getM size <* modM size (+(16+s))
        Just (t, o) -> return (o, fromIntegral t)
+     modM used (Im.alter (Just . maybe [t] (t:)) (fromIntegral o))
+     return (o, t)
 
 findFreeBlock :: Size -> Heap (Maybe (Int, Offset))
 findFreeBlock s = find <$> getM unused

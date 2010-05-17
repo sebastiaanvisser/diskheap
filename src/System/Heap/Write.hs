@@ -56,8 +56,9 @@ write a =
      return (Ptr o)
 
 writeAllocationMap :: Heap ()
-writeAllocationMap = get >>= write >>= writeBlock magicSize pointerSize . encode
+writeAllocationMap =
+  get >>= write >>= writeBlock 0x18 0x08 . encode
 
 readAllocationMap :: Heap ()
-readAllocationMap = read nullPtr >>= read >>= put
+readAllocationMap = read 0x18 >>= read >>= put
 
