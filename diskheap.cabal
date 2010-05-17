@@ -1,0 +1,20 @@
+Name:             diskheap
+Version:          0.0.0
+Description:      Block based storage heap on disk.
+Synopsis:         Block based storage heap on disk.
+Category:         Data, System
+License:          BSD3
+License-file:     LICENSE
+Author:           Sebastiaan Visser
+Maintainer:       haskell@fvisser.nl
+Build-Type:       Simple
+Cabal-Version:    >= 1.2
+
+Library
+  GHC-Options:      -threaded -Wall
+  HS-Source-Dirs:   src
+
+  Build-Depends:    base ==4.*
+
+  Exposed-modules:  Heap.Heap
+
