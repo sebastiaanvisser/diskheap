@@ -62,3 +62,9 @@ writeAllocationMap =
 readAllocationMap :: Heap ()
 readAllocationMap = read 0x18 >>= read >>= put
 
+writeRoot :: Binary a => a -> Heap ()
+writeRoot = write >=> writeBlock 0x30 0x08 . encode
+
+readRoot :: Binary a => Heap a
+readRoot = read (Ptr 0x30) >>= read
+
